@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import FacebookLogin from "react-facebook-login";
+import FacebookLogin from "./FacebookLogin";
 
 // acts as enum properties like in TS.
 const LoginStatuses = {
@@ -9,6 +9,7 @@ const LoginStatuses = {
 
 export const App = () => {
   const [authenticated, setAuthenticated] = React.useState(false);
+  const [expirationTime, setExpirationTime] = React.useState();
   const componentClicked = () => {
     console.log("clicked");
   }
@@ -17,22 +18,27 @@ export const App = () => {
     if (response.status === LoginStatuses.UNKNOWN) {
       return setAuthenticated(false)
     }
+    console.log("response: ", response)
   
-    setAuthenticated(true)
+    buildExpirationTime(response.expiresIn);
+    setAuthenticated(true);
+  }
+
+  const buildExpirationTime = (SECONDS) => {
+   const expirationTime = new Date(SECONDS * 1000).toISOString().substr(11, 8);
+   setExpirationTime(expirationTime)
   }
   
   return (
     <div className="App">
       <header className="App-header">
-        {authenticated && (<div>Bienvenido a trendzyla</div>)}
-
-        {!authenticated && (<FacebookLogin
-          appId="304286127520015"
-          autoLoad={true}
-          fields="name,email,picture"
-          onClick={componentClicked}
-          textButton="Inicia sesión con Facebook"
-          callback={callback}/>)}
+        {authenticated && (<div>Bienvenido a trendzyla, tu sesión expira en: {expirationTime}</div>)}
+        {!authenticated && (
+        <FacebookLogin
+          expirationTime={expirationTime}
+          componentClicked={componentClicked}
+          callback={callback}
+        />)}
       </header>
     </div>
   );
